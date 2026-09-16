@@ -153,6 +153,9 @@ Stated explicitly so that scope creep has to argue its case.
 - The existing `unittest.TestCase` tests are not rewritten pytest-native. pytest collects them as they are, which is what makes this split cheap.
 - The library covers the logtest socket only — not the Wazuh API, not agent management, not alert ingestion.
 - No Windows support. WSL remains the documented path, as it is today.
+- Air-gapped installation is not supported. `install.sh` may assume reachable
+  package indexes, so no `--no-python-deps` flag and no offline wheel workflow are
+  built. This is a deliberate exclusion, not an oversight.
 
 ## Risks
 
@@ -160,13 +163,12 @@ Stated explicitly so that scope creep has to argue its case.
 |---|---|---|
 | Pin swap forgotten at M4, shipping a git dependency to users | High | CI check rejecting `git+` in `requirements.txt` on tagged builds |
 | `0.1.0` published before real integration | High | Sequencing M2 ahead of M3 exists precisely to prevent this |
-| `install.sh` gains its first PyPI dependency; air-gapped installs break | Medium | Honour preset `PIP_INDEX_URL` / `PIP_FIND_LINKS`, add a `--no-python-deps` flag, document offline wheel installation |
+| `install.sh` gains its first PyPI dependency, so a PyPI or network outage now fails the install | Medium | Fail loudly through the existing `on_error` trap rather than leaving an empty venv that later yields `ModuleNotFoundError`. Air-gapped operation is out of scope (see Non-goals) |
 | Two-repo lockstep adds release ceremony for a single maintainer | Medium | `~=0.1` pinning; accept that the payoff is conditional on M5 actually happening |
 | Unpinned Wazuh 4.x breaks CI unreproducibly | Medium | `WAZUH_VERSION` override, pinned in CI at M2 |
 | Downstream forks parsing `/tmp/tester.log` break silently | Low | CHANGELOG entry at M4; JUnit XML is the replacement |
 
 ## Open decisions
 
-1. **Air-gapped installation** — is it a supported case? This determines whether `--no-python-deps` and offline wheel documentation are M2 scope or dropped entirely.
-2. **GitHub Releases for `wazuh-devenv`**, or tags only? It has neither today.
-3. **Which Wazuh minor to pin in CI.** The support matrix says one pinned minor but not which; pick whatever `install.sh` resolves on the day M2 starts.
+1. **GitHub Releases for `wazuh-devenv`**, or tags only? It has neither today.
+2. **Which Wazuh minor to pin in CI.** The support matrix says one pinned minor but not which; pick whatever `install.sh` resolves on the day M2 starts.
