@@ -1,0 +1,80 @@
+"""High-level functions for sending logs to the Wazuh logtest daemon."""
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from wazuhtester.response import LogtestResponse
+from wazuhtester.session import LogtestSession
+
+logger = logging.getLogger(__name__)
+
+
+def send_log(
+    log: str,
+    location: str = "stdin",
+    log_format: str = "syslog",
+    token: str | None = None,
+    socket_path: str | None = None,
+) -> LogtestResponse:
+    """Send a single log to Wazuh logtest and return the parsed response.
+
+    Args:
+        log: The log message to send.
+        location: The location field to report to Wazuh.
+        log_format: The log format to report to Wazuh.
+        token: An existing session token to continue, if any.
+        socket_path: Socket to connect to. Defaults to `get_socket_path()`.
+
+    Returns:
+        The parsed `LogtestResponse`.
+    """
+    session = LogtestSession(location=location, log_format=log_format, socket_path=socket_path)
+    try:
+        response_dict = session.process_log(log, token=token, options={})
+        return LogtestResponse(response_dict)
+    except Exception:
+        logger.exception("Error processing log")
+        raise
+
+
+def send_multiple_logs(
+    logs: list[str],
+    location: str = "stdin",
+    log_format: str = "syslog",
+    options: dict[str, Any] | None = None,
+    socket_path: str | None = None,
+) -> list[LogtestResponse]:
+    """Send a sequence of logs within a single session.
+
+    Needed for stateful/composite rules, which only fire once the full
+    sequence has been seen under the same session token. The session is
+    always removed afterwards, whether or not an error occurred.
+
+    Args:
+        logs: The log messages to send, in order.
+        location: The location field to report to Wazuh.
+        log_format: The log format to report to Wazuh.
+        options: Additional wazuh-logtest options.
+        socket_path: Socket to connect to. Defaults to `get_socket_path()`.
+
+    Returns:
+        The parsed `LogtestResponse` for each log, in order.
+    """
+    session = LogtestSession(location=location, log_format=log_format, socket_path=socket_path)
+    options = options or {}
+    responses: list[LogtestResponse] = []
+    token: str | None = None
+    try:
+        for log in logs:
+            response_dict = session.process_log(log, token=token, options=options)
+            if token is None:
+                token = response_dict.get("data", {}).get("token")
+            responses.append(LogtestResponse(response_dict))
+        return responses
+    except Exception:
+        logger.exception("Error processing logs")
+        raise
+    finally:
+        if token:
+            session.remove_session(token)
