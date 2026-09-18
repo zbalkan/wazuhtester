@@ -95,6 +95,7 @@ def send(msg: str, socket_path: str | None = None) -> bytes:
     encoded_msg = msg.encode("utf-8")
     try:
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+            sock.settimeout(_CONNECT_TIMEOUT_SECONDS)
             sock.connect(path)
             sock.sendall(struct.pack("<I", len(encoded_msg)) + encoded_msg)
 

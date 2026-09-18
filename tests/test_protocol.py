@@ -77,3 +77,54 @@ def test_send_short_read_raises(tmp_path) -> None:
     finally:
         thread.join(timeout=2)
         srv.close()
+
+
+def test_send_times_out_waiting_for_header(tmp_path, monkeypatch) -> None:
+    socket_path = str(tmp_path / "stalled-header.sock")
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(socket_path)
+    srv.listen(1)
+    release = threading.Event()
+
+    def serve() -> None:
+        conn, _ = srv.accept()
+        with conn:
+            conn.recv(4096)
+            release.wait(timeout=1)
+
+    thread = threading.Thread(target=serve, daemon=True)
+    thread.start()
+    monkeypatch.setattr("wazuhtester.protocol._CONNECT_TIMEOUT_SECONDS", 0.05)
+    try:
+        with pytest.raises(LogtestConnectionError, match="timed out"):
+            send(wrap_command("x", {}), socket_path=socket_path)
+    finally:
+        release.set()
+        thread.join(timeout=2)
+        srv.close()
+
+
+def test_send_times_out_waiting_for_body(tmp_path, monkeypatch) -> None:
+    socket_path = str(tmp_path / "stalled-body.sock")
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(socket_path)
+    srv.listen(1)
+    release = threading.Event()
+
+    def serve() -> None:
+        conn, _ = srv.accept()
+        with conn:
+            conn.recv(4096)
+            conn.sendall(struct.pack("<I", 10) + b"x")
+            release.wait(timeout=1)
+
+    thread = threading.Thread(target=serve, daemon=True)
+    thread.start()
+    monkeypatch.setattr("wazuhtester.protocol._CONNECT_TIMEOUT_SECONDS", 0.05)
+    try:
+        with pytest.raises(LogtestConnectionError, match="timed out"):
+            send(wrap_command("x", {}), socket_path=socket_path)
+    finally:
+        release.set()
+        thread.join(timeout=2)
+        srv.close()
