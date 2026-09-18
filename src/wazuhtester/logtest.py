@@ -10,19 +10,9 @@ that wazuh-devenv's deprecation shim forwards to.
 """
 from __future__ import annotations
 
-from wazuhtester import (  # noqa: F401
-    LOGTEST_SOCKET,
-    WAZUH_MAX_EVENT_SIZE,
-    LogtestConnectionError,
-    LogtestDaemonError,
-    LogtestError,
-    LogtestProtocolError,
-    LogtestResponse,
-    LogtestSession,
-    LogtestStatus,
-    __all__,
-    get_socket_path,
-    is_logtest_available,
-    send_log,
-    send_multiple_logs,
-)
+from wazuhtester import (LOGTEST_SOCKET, WAZUH_MAX_EVENT_SIZE,  # noqa: F401
+                         LogtestConnectionError, LogtestDaemonError,
+                         LogtestError, LogtestProtocolError, LogtestResponse,
+                         LogtestSession, LogtestStatus, __all__,
+                         get_socket_path, is_logtest_available, send_log,
+                         send_multiple_logs)

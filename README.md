@@ -190,7 +190,7 @@ def test_custom_rule(send_log):
 ## API surface
 
 | Name | Purpose |
-|---|---|
+| --- | --- |
 | `send_log(...)` | Send one event and return a `LogtestResponse`. A newly created daemon session is cleaned up automatically. |
 | `send_multiple_logs(...)` | Send an ordered sequence in one daemon session and return one response per event. |
 | `LogtestSession` | Lower-level session API. Automatically reuses the current daemon token and supports context-manager cleanup. |

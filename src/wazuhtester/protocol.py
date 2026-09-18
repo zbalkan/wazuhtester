@@ -12,7 +12,8 @@ import struct
 from typing import Any
 
 from wazuhtester.config import get_socket_path
-from wazuhtester.errors import LogtestConnectionError, LogtestDaemonError, LogtestProtocolError
+from wazuhtester.errors import (LogtestConnectionError, LogtestDaemonError,
+                                LogtestProtocolError)
 
 _ORIGIN_NAME = "wazuh-logtest"
 _CONNECT_TIMEOUT_SECONDS = 5
@@ -25,7 +26,7 @@ def is_logtest_available(socket_path: str | None = None) -> bool:
         socket_path: Socket to probe. Defaults to `get_socket_path()`.
     """
     path = socket_path or get_socket_path()
-    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:  # type: ignore
         sock.settimeout(_CONNECT_TIMEOUT_SECONDS)
         try:
             sock.connect(path)
@@ -93,7 +94,7 @@ def send(msg: str, socket_path: str | None = None) -> bytes:
     path = socket_path or get_socket_path()
     encoded_msg = msg.encode("utf-8")
     try:
-        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:  # type: ignore
             sock.connect(path)
             sock.sendall(struct.pack("<I", len(encoded_msg)) + encoded_msg)
 
