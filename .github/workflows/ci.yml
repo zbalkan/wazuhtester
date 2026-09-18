@@ -37,6 +37,6 @@ jobs:
           python -m pip install build
           python -m build
           python -m pip install --force-reinstall --no-deps dist/*.whl
-          python -c "import wazuhtester; print(wazuhtester.__version__)"
+          python -c "from importlib.metadata import version; import wazuhtester; assert wazuhtester.__version__ == version('wazuhtester'); print(wazuhtester.__version__)"
           wazuhtester --help
           python -m wazuhtester --help

@@ -11,6 +11,8 @@ installed with `pip` independently of its regression-test corpus.
 """
 from __future__ import annotations
 
+from importlib.metadata import version as distribution_version
+
 from wazuhtester.api import send_log, send_multiple_logs
 from wazuhtester.config import LOGTEST_SOCKET, WAZUH_MAX_EVENT_SIZE, get_socket_path
 from wazuhtester.errors import (
@@ -23,7 +25,7 @@ from wazuhtester.protocol import is_logtest_available
 from wazuhtester.response import LogtestResponse, LogtestStatus
 from wazuhtester.session import LogtestSession
 
-__version__ = "0.1.0.dev0"
+__version__ = distribution_version("wazuhtester")
 
 __all__ = [
     "__version__",
