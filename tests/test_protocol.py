@@ -37,6 +37,12 @@ def test_unwrap_response_malformed_json() -> None:
         unwrap_response(b"not json")
 
 
+@pytest.mark.parametrize("payload", [b"[]", b'"error"', b"42", b"null"])
+def test_unwrap_response_rejects_non_object_json(payload: bytes) -> None:
+    with pytest.raises(LogtestProtocolError, match="must be a JSON object"):
+        unwrap_response(payload)
+
+
 def test_is_logtest_available_false_when_socket_missing(tmp_path) -> None:
     assert is_logtest_available(str(tmp_path / "no-such.sock")) is False
 

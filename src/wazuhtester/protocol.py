@@ -54,7 +54,7 @@ def wrap_command(command: str, parameters: dict[str, Any]) -> str:
     return json.dumps(msg)
 
 
-def unwrap_response(msg: bytes) -> Any:
+def unwrap_response(msg: bytes) -> dict[str, Any]:
     """Unwrap a Wazuh daemon JSON envelope.
 
     Args:
@@ -71,6 +71,8 @@ def unwrap_response(msg: bytes) -> Any:
         json_msg: Any = json.loads(msg.decode("utf-8"))
     except json.JSONDecodeError as e:
         raise LogtestProtocolError(f"Failed to decode JSON response: {e}") from e
+    if not isinstance(json_msg, dict):
+        raise LogtestProtocolError("Wazuh daemon response must be a JSON object.")
     if json_msg.get("error"):
         raise LogtestDaemonError(json_msg.get("error"), json_msg.get("message", "Unknown error"))
     return json_msg
