@@ -146,7 +146,7 @@ from `wazuh-devenv`.
 
 | Axis | Committed | Verified in CI |
 |---|---|---|
-| Python | 3.10+ — PEP 604 unions evaluated in annotations set the floor; CI asserts 3.11 today | 3.10, 3.11, 3.12, 3.13 |
+| Python | 3.10+ — PEP 604 unions evaluated in annotations set the floor | 3.10, 3.11, 3.12, 3.13 |
 | Wazuh | 4.x | One pinned minor |
 | OS | Linux only — `AF_UNIX` sockets, and `grp`/`pwd` in the preflight tests | Ubuntu runner |
 
