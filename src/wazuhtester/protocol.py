@@ -69,7 +69,7 @@ def unwrap_response(msg: bytes) -> dict[str, Any]:
     """
     try:
         json_msg: Any = json.loads(msg.decode("utf-8"))
-    except json.JSONDecodeError as e:
+    except (UnicodeDecodeError, json.JSONDecodeError) as e:
         raise LogtestProtocolError(f"Failed to decode JSON response: {e}") from e
     if not isinstance(json_msg, dict):
         raise LogtestProtocolError("Wazuh daemon response must be a JSON object.")

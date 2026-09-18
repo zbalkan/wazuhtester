@@ -32,9 +32,10 @@ def test_unwrap_response_daemon_error() -> None:
     assert "boom" in str(excinfo.value)
 
 
-def test_unwrap_response_malformed_json() -> None:
+@pytest.mark.parametrize("payload", [b"not json", b"\xff"])
+def test_unwrap_response_malformed_payload(payload: bytes) -> None:
     with pytest.raises(LogtestProtocolError):
-        unwrap_response(b"not json")
+        unwrap_response(payload)
 
 
 @pytest.mark.parametrize("payload", [b"[]", b'"error"', b"42", b"null"])
