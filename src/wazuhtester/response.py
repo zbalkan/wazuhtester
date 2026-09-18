@@ -96,10 +96,12 @@ class LogtestResponse:
         self.url = data_fields.get("url")
         self.extra_data = data_fields.get("extra_data")
 
-        decoder_info: dict[str, Any] | None = output.get("decoder")
-        if decoder_info is None:
+        decoder_info = output.get("decoder")
+        if decoder_info is None or decoder_info == {} or decoder_info == "None":
             self.status = LogtestStatus.NoDecoder
             return
+        if not isinstance(decoder_info, dict):
+            raise ValueError(f"Unexpected decoder field in logtest response: {decoder_info!r}")
 
         self.decoder = decoder_info.get("name")
         self.decoder_parent = decoder_info.get("parent")

@@ -143,3 +143,24 @@ def test_to_dict_is_deterministic_and_json_compatible() -> None:
     assert list(serialized["dynamic_fields"]) == ["a", "z"]
     assert serialized["messages"] == ["message"]
     json.dumps(serialized)
+
+
+def test_empty_decoder_object_is_no_decoder() -> None:
+    response = LogtestResponse({"data": {"output": {"decoder": {}}}})
+    assert response.status == LogtestStatus.NoDecoder
+    assert response.decoder is None
+
+
+def test_string_none_decoder_is_no_decoder() -> None:
+    response = LogtestResponse({"data": {"output": {"decoder": "None"}}})
+    assert response.status == LogtestStatus.NoDecoder
+    assert response.decoder is None
+
+
+def test_unexpected_decoder_shape_is_rejected() -> None:
+    try:
+        LogtestResponse({"data": {"output": {"decoder": "sshd"}}})
+    except ValueError as exc:
+        assert "Unexpected decoder field" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError for unsupported decoder shape")
