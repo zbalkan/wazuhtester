@@ -215,4 +215,4 @@ framing, so a Wazuh installation is not required for normal package CI.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+GNU General Public License version 2 only — see [LICENSE](LICENSE).
