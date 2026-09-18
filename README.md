@@ -1,67 +1,152 @@
 # wazuhtester
 
-A small client library for the [Wazuh](https://wazuh.com/) `wazuh-logtest`
-daemon. It handles the Unix-socket wire protocol and gives back a parsed,
-typed response, so testing rules and decoders doesn't require re-implementing
-the framing and JSON envelope every time.
+`wazuhtester` is a Python library and command-line tool for interacting with the
+[Wazuh](https://wazuh.com/) `wazuh-logtest` daemon. It handles the Unix-socket
+wire protocol, daemon sessions, and response parsing so rule and decoder tests do
+not need to reimplement the framing and JSON envelope.
 
 It was extracted from [`wazuh-devenv`](https://github.com/zbalkan/wazuh-devenv),
-which now consumes it via `pip` instead of carrying its own copy. See
-[`ROADMAP.md`](ROADMAP.md) for how the two repositories are sequenced.
+which consumes the package instead of carrying its own protocol client. See
+[`ROADMAP.md`](ROADMAP.md) for the release and migration sequence.
 
 ## Status
 
-Pre-release (`0.1.0.dev0`). The API below is expected to be stable through
-`1.0.0`, but hasn't shipped to PyPI yet — see the roadmap's M1–M3 milestones.
+Pre-release (`0.1.0.dev0`). The package has not shipped to PyPI yet.
 
-## Install
+## Installation
+
+Install the package into a Python environment for library use:
 
 ```shell
-pip install wazuhtester
+python -m pip install wazuhtester
 ```
 
-Requires Python 3.10+ and a reachable `wazuh-logtest` Unix socket (from a
-running `wazuh-manager` — this library is a client, it doesn't install or run
-Wazuh itself).
+For command-line-only use, `pipx` is the preferred installation model once the
+package is published:
 
-## Quick start
+```shell
+pipx install wazuhtester
+```
+
+A local checkout can be installed with:
+
+```shell
+pipx install --editable .
+```
+
+The package requires Python 3.10+ and a reachable `wazuh-logtest` Unix socket
+from a running Wazuh manager. It does not install or run Wazuh itself.
+
+## Python API
+
+For a single independent event:
 
 ```python
-from wazuhtester import send_log, LogtestStatus
+from wazuhtester import LogtestStatus, send_log
 
-response = send_log('Oct 10 10:00:00 host sshd[1234]: Failed password for root from 1.2.3.4 port 22 ssh2')
+response = send_log(
+    "Oct 10 10:00:00 host sshd[1234]: "
+    "Failed password for root from 1.2.3.4 port 22 ssh2"
+)
 
 assert response.status == LogtestStatus.RuleMatch
-assert response.rule_id == "5710"
+print(response.rule_id)
 print(response.rule_description)
 ```
 
-For a rule that only fires across a sequence of events (composite/stateful
-rules), send them in one session with `send_multiple_logs`, which keeps the
-Wazuh-issued token across calls and always removes the session afterwards:
+A one-shot `send_log()` call owns the daemon session it creates and removes it
+before returning. Supplying an explicit `token` means the caller owns that
+existing session, so `send_log()` does not remove it.
+
+For stateful, frequency, or composite rules, send the sequence in one session:
 
 ```python
-from wazuhtester import send_multiple_logs, LogtestStatus
+from wazuhtester import LogtestStatus, send_multiple_logs
 
 logs = [
     "sshd: Failed password for invalid user admin from 1.2.3.4 port 22 ssh2",
     "sshd: Failed password for invalid user admin from 1.2.3.4 port 22 ssh2",
     "sshd: Failed password for invalid user admin from 1.2.3.4 port 22 ssh2",
 ]
+
 responses = send_multiple_logs(logs)
 assert responses[-1].status == LogtestStatus.RuleMatch
 ```
 
+For explicit session control, `LogtestSession` automatically reuses the token
+returned by the daemon:
+
+```python
+from wazuhtester import LogtestResponse, LogtestSession
+
+with LogtestSession() as session:
+    first = LogtestResponse(session.process_log("event one"))
+    second = LogtestResponse(session.process_log("event two"))
+```
+
+The second request uses the token returned by the first. Exiting the context
+removes the active daemon session.
+
+## CLI
+
+Installing the package exposes the `wazuhtester` console command. The executable
+name deliberately does not use `wazuh-logtest`, which is the name of Wazuh's
+native tool.
+
+The console-script and module entry points are equivalent:
+
+```shell
+wazuhtester
+python -m wazuhtester
+```
+
+The CLI reads one log record per line from stdin. All records in one invocation
+share one daemon session, preserving correlation and frequency semantics:
+
+```shell
+printf '%s\n' \
+  'sshd: Failed password for invalid user admin from 1.2.3.4 port 22 ssh2' \
+  'sshd: Failed password for invalid user admin from 1.2.3.4 port 22 ssh2' |
+  wazuhtester
+```
+
+Useful options:
+
+```text
+-l, --location TEXT
+-f, --log-format FORMAT
+-s, --socket PATH
+    --json
+    --version
+-h, --help
+```
+
+`--json` emits one JSON object per input record (NDJSON), suitable for shell
+pipelines:
+
+```shell
+cat samples.log | wazuhtester --json | jq 'select(.rule_id == "5710")'
+```
+
+A valid event that produces no rule match is still a successful CLI operation.
+Runtime communication or protocol failures return exit code 1, argparse usage
+errors return 2, and Ctrl+C returns 130.
+
 ## Configuring the socket path
 
-By default the client looks for the socket at Wazuh's usual install location,
-`/var/ossec/queue/sockets/logtest`. Point it elsewhere — a container, a
-non-default install, a test fixture — with an environment variable or a
-per-call argument:
+By default the client uses:
+
+```text
+/var/ossec/queue/sockets/logtest
+```
+
+Override it through the environment:
 
 ```shell
 export WAZUH_LOGTEST_SOCKET=/path/to/logtest.sock
 ```
+
+or per call:
 
 ```python
 from wazuhtester import send_log
@@ -80,22 +165,17 @@ if not is_logtest_available():
 
 ## pytest plugin
 
-Installing `wazuhtester` registers a pytest plugin automatically (no `-p`
-flag needed). It is deliberately opt-in: by default it does nothing beyond
-providing fixtures, so a project that merely depends on wazuhtester doesn't
-get its whole test session hard-failed just because no Wazuh daemon happens
-to be reachable during that run.
+Installing `wazuhtester` also registers a pytest plugin through the `pytest11`
+entry point. It is deliberately opt-in for daemon availability checks.
 
-- `@pytest.mark.wazuh_logtest` — mark a test as needing a live daemon. If the
-  daemon is unavailable, marked tests are skipped rather than erroring.
-- `--wazuh-require-logtest` (or the `wazuh_require_logtest` ini option) —
-  treat a missing daemon as fatal for the whole session instead, with an
-  actionable error message. Set this in a project (such as `wazuh-devenv`)
-  where effectively every test needs the daemon.
-- `--wazuh-socket PATH` — override the socket path for the run (equivalent to
-  setting `WAZUH_LOGTEST_SOCKET`).
-- Fixtures: `logtest_session` (a `LogtestSession`, torn down automatically)
-  and `send_log` (a thin wrapper around `wazuhtester.send_log`).
+- `@pytest.mark.wazuh_logtest` marks a test as requiring a live daemon. Marked
+  tests are skipped if the daemon is unavailable.
+- `--wazuh-require-logtest`, or the `wazuh_require_logtest` ini option, makes
+  an unavailable daemon fatal for the test session.
+- `--wazuh-socket PATH` overrides the socket path for the test run.
+- `logtest_session` provides a `LogtestSession` and removes its active session
+  during teardown.
+- `send_log` exposes the high-level one-shot API as a fixture.
 
 ```python
 import pytest
@@ -109,16 +189,16 @@ def test_custom_rule(send_log):
 
 ## API surface
 
-| Name | What it is |
+| Name | Purpose |
 |---|---|
-| `send_log(log, location="stdin", log_format="syslog", token=None, socket_path=None)` | Send one log, get back a `LogtestResponse`. |
-| `send_multiple_logs(logs, location="stdin", log_format="syslog", options=None, socket_path=None)` | Send a sequence within one session; returns a `LogtestResponse` per log. |
-| `LogtestResponse` | Parsed daemon reply: `status`, `alert`, `full_log`, `timestamp`, `location`, decoder/rule fields, `get_dynamic_field_value(name)`. Every attribute is safe to read regardless of `status`. |
-| `LogtestStatus` | `RuleMatch`, `Error`, `NoDecoder`, `NoRule`. |
-| `LogtestSession` | Lower-level session object (also a context manager) for explicit control over session lifetime. |
-| `is_logtest_available(socket_path=None)` | Cheap reachability check, no log sent. |
-| `get_socket_path()` | The socket path that will be used, honouring `WAZUH_LOGTEST_SOCKET`. |
-| `LogtestError`, `LogtestConnectionError`, `LogtestProtocolError`, `LogtestDaemonError` | Exception hierarchy; the connection/protocol errors subclass the matching builtins (`ConnectionError`, `ValueError`). |
+| `send_log(...)` | Send one event and return a `LogtestResponse`. A newly created daemon session is cleaned up automatically. |
+| `send_multiple_logs(...)` | Send an ordered sequence in one daemon session and return one response per event. |
+| `LogtestSession` | Lower-level session API. Automatically reuses the current daemon token and supports context-manager cleanup. |
+| `LogtestResponse` | Parsed daemon response with status, decoder, rule, static and dynamic fields. `to_dict()` returns deterministic JSON-compatible data. |
+| `LogtestStatus` | `RuleMatch`, `Error`, `NoDecoder`, or `NoRule`. |
+| `is_logtest_available(...)` | Probe the configured Unix socket without sending an event. |
+| `get_socket_path()` | Resolve the socket path, including `WAZUH_LOGTEST_SOCKET`. |
+| `LogtestError` hierarchy | Distinguish connection, daemon, and protocol failures while preserving compatible builtin base classes. |
 
 ## Development
 
@@ -130,8 +210,8 @@ python -m venv .venv
 .venv/bin/mypy src/wazuhtester
 ```
 
-The test suite runs against a fake `AF_UNIX` server that replays the Wazuh
-logtest wire protocol, so no Wazuh install is needed to develop or run CI.
+The test suite uses a fake `AF_UNIX` server that implements the Wazuh logtest
+framing, so a Wazuh installation is not required for normal package CI.
 
 ## License
 

@@ -24,7 +24,7 @@ code that will carry it.
 | ID | Repo | Version | Theme | Exit gate |
 |---|---|---|---|---|
 | **M0** | wazuhtester | — | Foundations | `pip install -e .` works; CI green on 3.10–3.13; PyPI and TestPyPI projects claimed, Trusted Publishing configured |
-| **M1** | wazuhtester | `0.1.0rc1` → TestPyPI | Extraction | Unit tests green against a fake `AF_UNIX` server; clean install from TestPyPI into a scratch venv |
+| **M1** | wazuhtester | `0.1.0rc1` → TestPyPI | Extraction + CLI | Library and CLI tests green against a fake `AF_UNIX` server; installed wheel supports import, `wazuhtester --help`, and `python -m wazuhtester --help`; clean install from TestPyPI |
 | **M2** | wazuh-devenv | branch only | Migration | Full corpus green on a live Wazuh host via the git pin; collected test count and pass/fail set identical to the pre-migration `tester.py` baseline |
 | **M3** | wazuhtester | `0.1.0` → PyPI | First release | M2 passed — the release is the consequence of integration, not its precondition |
 | **M4** | wazuh-devenv | `0.3.0` | Cutover | Pin swapped from `git+https` to `wazuhtester~=0.1`; CI green; merged and tagged |
@@ -151,7 +151,7 @@ Stated explicitly so that scope creep has to argue its case.
 
 - The builtin regression corpus is not shipped to PyPI. It stays in `wazuh-devenv` and arrives by git clone.
 - The existing `unittest.TestCase` tests are not rewritten pytest-native. pytest collects them as they are, which is what makes this split cheap.
-- The library covers the logtest socket only — not the Wazuh API, not agent management, not alert ingestion.
+- The package covers the logtest socket only — not the Wazuh API, not agent management, not alert ingestion.\n- The CLI does not replace or shadow Wazuh's native `wazuh-logtest` executable.
 - No Windows support. WSL remains the documented path, as it is today.
 - Air-gapped installation is not supported. `install.sh` may assume reachable
   package indexes, so no `--no-python-deps` flag and no offline wheel workflow are
