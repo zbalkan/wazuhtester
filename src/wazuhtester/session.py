@@ -77,12 +77,19 @@ class LogtestSession:
             self._last_token = new_token
         return reply
 
-    def remove_last_session(self) -> None:
-        """Remove the active daemon session, if any."""
+    def remove_last_session(self) -> bool:
+        """Remove the active daemon session, retaining it locally on failure.
+
+        Returns:
+            True when there is no active session or the daemon confirms removal.
+        """
         token = self._last_token
-        self._last_token = ""
-        if token:
-            self.remove_session(token)
+        if not token:
+            return True
+        if self.remove_session(token):
+            self._last_token = ""
+            return True
+        return False
 
     def remove_session(self, token: str) -> bool:
         """Remove a session by token.
@@ -99,7 +106,6 @@ class LogtestSession:
             codemsg = int(reply.get("codemsg", -1))
             return codemsg >= 0
         except Exception:
-            logger.exception("Failed to remove session %s", token)
             return False
 
     def __enter__(self) -> LogtestSession:

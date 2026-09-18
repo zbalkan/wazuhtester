@@ -97,3 +97,28 @@ def test_context_manager_removes_last_session(fake_logtest_server, fake_socket_p
     commands = [c["command"] for c in calls]
     assert commands == ["log_processing", "remove_session"]
     assert calls[-1]["parameters"]["token"] == "tok-abc"
+
+
+def test_remove_last_session_retains_token_until_removal_succeeds(
+    fake_logtest_server,
+    fake_socket_path: str,
+) -> None:
+    calls: list[dict] = []
+    removal_results = iter([-1, 0])
+
+    def handler(req: dict) -> dict:
+        calls.append(req)
+        if req["command"] == "log_processing":
+            return {"data": {"token": "tok-retry", "output": {}}}
+        return {"codemsg": next(removal_results)}
+
+    fake_logtest_server(handler)
+    session = LogtestSession(socket_path=fake_socket_path)
+    session.process_log("hello")
+
+    assert session.remove_last_session() is False
+    assert session.remove_last_session() is True
+    assert session.remove_last_session() is True
+
+    remove_calls = [call for call in calls if call["command"] == "remove_session"]
+    assert [call["parameters"]["token"] for call in remove_calls] == ["tok-retry", "tok-retry"]
