@@ -1,6 +1,7 @@
-"""Tests for LogtestResponse parsing, including defect #1: every attribute
-must be safe to read regardless of `status`, in particular on Error."""
+"""Tests for LogtestResponse parsing and serialization."""
 from __future__ import annotations
+
+import json
 
 from wazuhtester.response import LogtestResponse, LogtestStatus
 
@@ -8,7 +9,6 @@ from wazuhtester.response import LogtestResponse, LogtestStatus
 def test_error_status_leaves_every_attribute_readable() -> None:
     response = LogtestResponse({"error": 6, "data": {"messages": ["boom"]}})
     assert response.status == LogtestStatus.Error
-    # Regression test for defect #1: these used to raise AttributeError.
     assert response.full_log == ""
     assert response.timestamp == ""
     assert response.location == ""
@@ -27,9 +27,7 @@ def test_no_decoder_status() -> None:
 
 
 def test_no_rule_status() -> None:
-    response = LogtestResponse(
-        {"data": {"output": {"decoder": {"name": "json"}, "data": {}}}}
-    )
+    response = LogtestResponse({"data": {"output": {"decoder": {"name": "json"}, "data": {}}}})
     assert response.status == LogtestStatus.NoRule
     assert response.decoder == "json"
     assert response.rule_id is None
@@ -117,3 +115,31 @@ def test_flatten_nested_dict_and_list() -> None:
     assert response.get_dynamic_field_value("items.1") == "b"
     assert response.get_dynamic_field_value("empty_dict") is None
     assert response.get_dynamic_field_value("empty_list") is None
+
+
+def test_to_dict_is_deterministic_and_json_compatible() -> None:
+    response = LogtestResponse(
+        {
+            "data": {
+                "messages": ["message"],
+                "output": {
+                    "decoder": {"name": "json"},
+                    "data": {"z": 1, "a": 2},
+                    "rule": {
+                        "id": "1",
+                        "groups": ["z-group", "a-group"],
+                        "mitre": {"id": ["T2000", "T1000"]},
+                    },
+                },
+            }
+        }
+    )
+
+    serialized = response.to_dict()
+
+    assert serialized["status"] == "RuleMatch"
+    assert serialized["rule_groups"] == ["a-group", "z-group"]
+    assert serialized["rule_mitre_ids"] == ["T1000", "T2000"]
+    assert list(serialized["dynamic_fields"]) == ["a", "z"]
+    assert serialized["messages"] == ["message"]
+    json.dumps(serialized)

@@ -51,9 +51,6 @@ class LogtestResponse:
         data: dict[str, Any] = response_dict.get("data", {})
         self._messages = data.get("messages", [])
 
-        # Defaults for every attribute, set before any early return, so a
-        # response terminating at any status still exposes every documented
-        # attribute instead of raising AttributeError.
         self.status: LogtestStatus
         self.alert: bool = False
         self.full_log: str = ""
@@ -160,3 +157,30 @@ class LogtestResponse:
     def get_dynamic_field_value(self, flattened_field_name: str) -> Any | None:
         """Return a dynamic field's value by its flattened name, or None."""
         return self._flattened_fields.get(flattened_field_name)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a deterministic JSON-compatible representation of the response."""
+        return {
+            "status": self.status.name,
+            "alert": self.alert,
+            "full_log": self.full_log,
+            "timestamp": self.timestamp,
+            "location": self.location,
+            "srcip": self.srcip,
+            "srcport": self.srcport,
+            "dstip": self.dstip,
+            "dstport": self.dstport,
+            "protocol": self.protocol,
+            "action": self.action,
+            "url": self.url,
+            "extra_data": self.extra_data,
+            "decoder": self.decoder,
+            "decoder_parent": self.decoder_parent,
+            "rule_id": self.rule_id,
+            "rule_level": self.rule_level,
+            "rule_description": self.rule_description,
+            "rule_groups": sorted(self.rule_groups),
+            "rule_mitre_ids": sorted(self.rule_mitre_ids),
+            "dynamic_fields": dict(sorted(self._flattened_fields.items())),
+            "messages": list(self._messages),
+        }

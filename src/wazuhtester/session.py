@@ -12,15 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class LogtestSession:
-    """Interacts with wazuh-logtest to process logs and manage daemon sessions.
+    """Interact with wazuh-logtest while retaining daemon session state.
 
     A session groups a sequence of `process_log` calls under one location
-    and log_format, and tracks the daemon-issued token so stateful
-    (composite) rules see the full sequence. Use it directly, or as a
-    context manager, which removes the last opened session on exit:
-
-        with LogtestSession() as session:
-            reply = session.process_log(log)
+    and log format. Once the daemon issues a token, subsequent calls reuse it
+    automatically so stateful and frequency-based rules see the full sequence.
+    Use the object as a context manager to remove the active daemon session on
+    exit.
     """
 
     def __init__(
@@ -33,12 +31,22 @@ class LogtestSession:
         self._socket_path = socket_path
         self._last_token = ""
 
-    def process_log(self, log: str, token: str | None = None, options: dict[str, Any] | None = None) -> dict[str, Any]:
+    def process_log(
+        self,
+        log: str,
+        token: str | None = None,
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Send a log event to wazuh-logtest and return the raw daemon reply.
+
+        If `token` is omitted, the token returned by the previous call is
+        reused automatically. Supplying a token overrides the tracked token
+        for this request; any token returned by the daemon becomes the token
+        used by later calls.
 
         Args:
             log: The log message to process.
-            token: An existing session token to continue, if any.
+            token: An explicit session token to use for this request.
             options: Additional wazuh-logtest options.
 
         Returns:
@@ -51,8 +59,9 @@ class LogtestSession:
             raise ValueError(f"Log size exceeds the maximum limit of {WAZUH_MAX_EVENT_SIZE} bytes.")
 
         data: dict[str, Any] = self._fixed_fields.copy()
-        if token:
-            data["token"] = token
+        active_token = token if token is not None else self._last_token
+        if active_token:
+            data["token"] = active_token
         data["event"] = log.strip("\n")
         if options:
             data["options"] = options
@@ -69,10 +78,11 @@ class LogtestSession:
         return reply
 
     def remove_last_session(self) -> None:
-        """Remove the last opened session, if any."""
-        if self._last_token:
-            self.remove_session(self._last_token)
-            self._last_token = ""
+        """Remove the active daemon session, if any."""
+        token = self._last_token
+        self._last_token = ""
+        if token:
+            self.remove_session(token)
 
     def remove_session(self, token: str) -> bool:
         """Remove a session by token.

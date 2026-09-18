@@ -1,14 +1,17 @@
 """Tests for the high-level send_log / send_multiple_logs API."""
 from __future__ import annotations
 
+import pytest
+
 from wazuhtester.api import send_log, send_multiple_logs
+from wazuhtester.errors import LogtestDaemonError
 from wazuhtester.response import LogtestStatus
 
 
-def _rule_match_reply(rule_id: str) -> dict:
+def _rule_match_reply(rule_id: str, token: str = "tok-1") -> dict:
     return {
         "data": {
-            "token": "tok-1",
+            "token": token,
             "output": {
                 "decoder": {"name": "sshd"},
                 "rule": {"id": rule_id, "level": 5},
@@ -17,11 +20,41 @@ def _rule_match_reply(rule_id: str) -> dict:
     }
 
 
-def test_send_log_returns_parsed_response(fake_logtest_server, fake_socket_path: str) -> None:
-    fake_logtest_server(lambda req: _rule_match_reply("5710"))
+def test_send_log_returns_parsed_response_and_removes_owned_session(
+    fake_logtest_server,
+    fake_socket_path: str,
+) -> None:
+    calls: list[dict] = []
+
+    def handler(req: dict) -> dict:
+        calls.append(req)
+        if req["command"] == "remove_session":
+            return {"codemsg": 0}
+        return _rule_match_reply("5710")
+
+    fake_logtest_server(handler)
     response = send_log("a log line", socket_path=fake_socket_path)
+
     assert response.status == LogtestStatus.RuleMatch
     assert response.rule_id == "5710"
+    assert [call["command"] for call in calls] == ["log_processing", "remove_session"]
+
+
+def test_send_log_with_explicit_token_leaves_session_owned_by_caller(
+    fake_logtest_server,
+    fake_socket_path: str,
+) -> None:
+    calls: list[dict] = []
+
+    def handler(req: dict) -> dict:
+        calls.append(req)
+        return _rule_match_reply("5710")
+
+    fake_logtest_server(handler)
+    send_log("a log line", token="tok-external", socket_path=fake_socket_path)
+
+    assert [call["command"] for call in calls] == ["log_processing"]
+    assert calls[0]["parameters"]["token"] == "tok-external"
 
 
 def test_send_multiple_logs_reuses_token_and_removes_session(fake_logtest_server, fake_socket_path: str) -> None:
@@ -40,7 +73,6 @@ def test_send_multiple_logs_reuses_token_and_removes_session(fake_logtest_server
     assert all(r.status == LogtestStatus.RuleMatch for r in responses)
 
     process_calls = [c for c in calls if c["command"] == "log_processing"]
-    # Only the second and third calls should carry the token from the first reply.
     assert "token" not in process_calls[0]["parameters"]
     assert process_calls[1]["parameters"]["token"] == "tok-1"
     assert process_calls[2]["parameters"]["token"] == "tok-1"
@@ -61,10 +93,8 @@ def test_send_multiple_logs_removes_session_even_on_error(fake_logtest_server, f
         return responses_left.pop(0)
 
     fake_logtest_server(handler)
-    try:
+    with pytest.raises(LogtestDaemonError):
         send_multiple_logs(["log1", "log2"], socket_path=fake_socket_path)
-    except Exception:
-        pass
 
     remove_calls = [c for c in calls if c["command"] == "remove_session"]
-    assert len(remove_calls) == 1, "the session must be cleaned up even when a log in the middle errors"
+    assert len(remove_calls) == 1

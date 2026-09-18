@@ -19,11 +19,15 @@ def send_log(
 ) -> LogtestResponse:
     """Send a single log to Wazuh logtest and return the parsed response.
 
+    A call without `token` owns the daemon session it creates and removes it
+    before returning. When an existing `token` is supplied, session lifetime
+    remains the caller's responsibility.
+
     Args:
         log: The log message to send.
         location: The location field to report to Wazuh.
         log_format: The log format to report to Wazuh.
-        token: An existing session token to continue, if any.
+        token: An existing caller-owned session token to continue, if any.
         socket_path: Socket to connect to. Defaults to `get_socket_path()`.
 
     Returns:
@@ -31,11 +35,14 @@ def send_log(
     """
     session = LogtestSession(location=location, log_format=log_format, socket_path=socket_path)
     try:
-        response_dict = session.process_log(log, token=token, options={})
+        response_dict = session.process_log(log, token=token)
         return LogtestResponse(response_dict)
     except Exception:
         logger.exception("Error processing log")
         raise
+    finally:
+        if token is None:
+            session.remove_last_session()
 
 
 def send_multiple_logs(
@@ -61,20 +68,13 @@ def send_multiple_logs(
     Returns:
         The parsed `LogtestResponse` for each log, in order.
     """
-    session = LogtestSession(location=location, log_format=log_format, socket_path=socket_path)
-    options = options or {}
     responses: list[LogtestResponse] = []
-    token: str | None = None
     try:
-        for log in logs:
-            response_dict = session.process_log(log, token=token, options=options)
-            if token is None:
-                token = response_dict.get("data", {}).get("token")
-            responses.append(LogtestResponse(response_dict))
+        with LogtestSession(location=location, log_format=log_format, socket_path=socket_path) as session:
+            for log in logs:
+                response_dict = session.process_log(log, options=options)
+                responses.append(LogtestResponse(response_dict))
         return responses
     except Exception:
         logger.exception("Error processing logs")
         raise
-    finally:
-        if token:
-            session.remove_session(token)

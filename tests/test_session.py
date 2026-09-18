@@ -14,6 +14,49 @@ def test_process_log_tracks_token(fake_logtest_server, fake_socket_path: str) ->
     assert reply["data"]["token"] == "tok-123"
 
 
+def test_process_log_reuses_tracked_token(fake_logtest_server, fake_socket_path: str) -> None:
+    calls: list[dict] = []
+
+    def handler(req: dict) -> dict:
+        calls.append(req)
+        if req["command"] == "remove_session":
+            return {"codemsg": 0}
+        return {"data": {"token": "tok-123", "output": {}}}
+
+    fake_logtest_server(handler)
+    with LogtestSession(socket_path=fake_socket_path) as session:
+        session.process_log("first")
+        session.process_log("second")
+
+    process_calls = [call for call in calls if call["command"] == "log_processing"]
+    assert "token" not in process_calls[0]["parameters"]
+    assert process_calls[1]["parameters"]["token"] == "tok-123"
+
+
+def test_explicit_token_overrides_tracked_token_and_updates_state(
+    fake_logtest_server,
+    fake_socket_path: str,
+) -> None:
+    calls: list[dict] = []
+    tokens = iter(["tok-first", "tok-second", "tok-second"])
+
+    def handler(req: dict) -> dict:
+        calls.append(req)
+        if req["command"] == "remove_session":
+            return {"codemsg": 0}
+        return {"data": {"token": next(tokens), "output": {}}}
+
+    fake_logtest_server(handler)
+    with LogtestSession(socket_path=fake_socket_path) as session:
+        session.process_log("first")
+        session.process_log("second", token="tok-external")
+        session.process_log("third")
+
+    process_calls = [call for call in calls if call["command"] == "log_processing"]
+    assert process_calls[1]["parameters"]["token"] == "tok-external"
+    assert process_calls[2]["parameters"]["token"] == "tok-second"
+
+
 def test_process_log_rejects_oversized_log(fake_socket_path: str) -> None:
     session = LogtestSession(socket_path=fake_socket_path)
     with pytest.raises(ValueError, match="exceeds the maximum limit"):
@@ -34,7 +77,6 @@ def test_remove_session_reports_failure_without_raising(fake_logtest_server, fak
 
 def test_remove_last_session_noop_when_no_token(fake_socket_path: str) -> None:
     session = LogtestSession(socket_path=fake_socket_path)
-    # Should not attempt any socket communication, and must not raise.
     session.remove_last_session()
 
 
