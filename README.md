@@ -11,7 +11,7 @@ which consumes the package instead of carrying its own protocol client. See
 
 ## Status
 
-Pre-release (`0.1.0.dev0`). The package has not shipped to PyPI yet.
+Release candidate (`0.1.0rc1`). The package is awaiting live Wazuh corpus qualification before its first PyPI release.
 
 ## Installation
 
