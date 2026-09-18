@@ -12,13 +12,14 @@ installed with `pip` independently of its regression-test corpus.
 from __future__ import annotations
 
 import sys
-from importlib.metadata import version as distribution_version
 
 if sys.platform != "linux":
     raise RuntimeError(
         "wazuhtester supports Linux only because it requires the local "
         "Wazuh wazuh-logtest Unix socket."
     )
+
+from importlib.metadata import version as distribution_version
 
 from wazuhtester.api import send_log, send_multiple_logs
 from wazuhtester.config import LOGTEST_SOCKET, WAZUH_MAX_EVENT_SIZE, get_socket_path
