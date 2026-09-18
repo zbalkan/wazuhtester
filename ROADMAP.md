@@ -1,7 +1,7 @@
 # Roadmap
 
-Covers the separation of the Wazuh logtest client library (`wazuhtester`, published to
-PyPI) from the rule/decoder test corpus and development environment
+Covers the separation of the Wazuh logtest client package (`wazuhtester`, published to
+PyPI as both a library and CLI) from the rule/decoder test corpus and development environment
 (`wazuh-devenv`). The design behind the split is in the extraction plan;
 see [`docs/library-extraction-plan.md`](https://github.com/zbalkan/wazuh-devenv/blob/main/docs/library-extraction-plan.md) in `wazuh-devenv` for the API surface, the defects fixed during the move, and the migration mechanics.
 
@@ -69,7 +69,19 @@ release:
 The defects catalogued in the extraction plan land here too. After `0.1.0` they become
 breaking changes rather than fixes.
 
-Library tests run against a fake `AF_UNIX` server replaying recorded daemon envelopes, so
+The first release also exposes the package as a command-line application. `wazuhtester`
+and `python -m wazuhtester` are equivalent entry points. The CLI reads stdin as a stream,
+uses one daemon session for the invocation, supports human-readable and NDJSON output,
+and delegates all protocol and session behavior to the library. The command is deliberately
+named `wazuhtester` rather than `wazuh-logtest` to avoid colliding with Wazuh's native
+executable.
+
+Before exposing that CLI, `LogtestSession` owns automatic token reuse, one-shot
+`send_log()` calls clean up sessions they create, explicit-token calls retain caller
+ownership, and `LogtestResponse.to_dict()` provides the stable serialization boundary
+used by the CLI.
+
+Library and CLI tests run against a fake `AF_UNIX` server replaying recorded daemon envelopes, so
 library CI never provisions a Wazuh manager. That is what keeps the feedback loop fast and
 is the main structural gain over the status quo.
 
@@ -103,10 +115,10 @@ parsing that line breaks.
 
 ### M5 — Reuse (`wazuhtester 0.2.0`) — candidate
 
-The split only pays for itself if a second consumer appears. Likely contents: a
-`wazuh-logtest` console script for one-off testing outside pytest, session and batch
-ergonomics, and support for the daemon's `options` parameter, which is currently always
-passed empty so `rules_debug` output is unreachable.
+The split only pays for itself if a second consumer appears. Likely contents are CLI and
+session ergonomics driven by actual consumers: file input, selected diagnostic modes, and
+controlled exposure of the daemon's `options` parameter so capabilities such as
+`rules_debug` can be reached without turning arbitrary protocol JSON into the public CLI.
 
 Do not build this speculatively. Let a second consumer's actual requirements drive it.
 
@@ -151,7 +163,8 @@ Stated explicitly so that scope creep has to argue its case.
 
 - The builtin regression corpus is not shipped to PyPI. It stays in `wazuh-devenv` and arrives by git clone.
 - The existing `unittest.TestCase` tests are not rewritten pytest-native. pytest collects them as they are, which is what makes this split cheap.
-- The package covers the logtest socket only — not the Wazuh API, not agent management, not alert ingestion.\n- The CLI does not replace or shadow Wazuh's native `wazuh-logtest` executable.
+- The package covers the logtest socket only — not the Wazuh API, not agent management, not alert ingestion.
+- The CLI does not replace or shadow Wazuh's native `wazuh-logtest` executable.
 - No Windows support. WSL remains the documented path, as it is today.
 - Air-gapped installation is not supported. `install.sh` may assume reachable
   package indexes, so no `--no-python-deps` flag and no offline wheel workflow are
