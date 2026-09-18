@@ -1,6 +1,8 @@
 """Tests for the high-level send_log / send_multiple_logs API."""
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 from wazuhtester.api import send_log, send_multiple_logs
@@ -98,3 +100,17 @@ def test_send_multiple_logs_removes_session_even_on_error(fake_logtest_server, f
 
     remove_calls = [c for c in calls if c["command"] == "remove_session"]
     assert len(remove_calls) == 1
+
+
+def test_send_log_does_not_log_exception_before_reraising(
+    fake_logtest_server,
+    fake_socket_path: str,
+    caplog,
+) -> None:
+    fake_logtest_server(lambda req: {"error": 6, "message": "boom"})
+    caplog.set_level(logging.ERROR)
+
+    with pytest.raises(LogtestDaemonError):
+        send_log("a log line", socket_path=fake_socket_path)
+
+    assert not [record for record in caplog.records if record.name == "wazuhtester.api"]
