@@ -34,8 +34,11 @@ A local checkout can be installed with:
 pipx install --editable .
 ```
 
-The package requires Python 3.10+ and a reachable `wazuh-logtest` Unix socket
-from a running Wazuh manager. It does not install or run Wazuh itself.
+The package requires Python 3.10+, Linux, and a reachable `wazuh-logtest` Unix
+socket from a running Wazuh manager. It does not install or run Wazuh itself.
+Importing `wazuhtester` on a non-Linux platform fails immediately with an
+explicit unsupported-platform error. WSL is supported because Python reports the
+WSL environment as Linux.
 
 ## Python API
 
