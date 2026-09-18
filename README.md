@@ -206,7 +206,6 @@ def test_custom_rule(send_log):
 python -m venv .venv
 .venv/bin/pip install -e ".[dev]"
 .venv/bin/pytest
-.venv/bin/ruff check src tests
 .venv/bin/mypy src/wazuhtester
 ```
 
