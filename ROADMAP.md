@@ -32,7 +32,7 @@ It does not own Wazuh installation, rule/decoder content, regression-corpus dist
 
 ## M2 — Real Wazuh qualification
 
-The release workflow installs Wazuh 4.14.7 and runs the external `wazuh-rule-tests` corpus using the candidate package.
+The release workflow installs Wazuh 4.14.8 and runs the external `wazuh-rule-tests` corpus using the candidate package.
 
 This gate validates behavior that the fake AF_UNIX server cannot prove:
 
@@ -87,5 +87,5 @@ Ruleset XML introspection, corpus generation, archive coverage analysis, and Waz
 | Axis | Support |
 | --- | --- |
 | Python | 3.10–3.13 currently validated |
-| Wazuh | Wazuh 4.x; release qualification currently pins 4.14.7 |
+| Wazuh | Wazuh 4.x; release qualification currently pins 4.14.8 |
 | OS | Linux only; WSL is supported as Linux |
