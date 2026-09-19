@@ -99,7 +99,7 @@ jobs:
 
       - name: Install Wazuh manager
         env:
-          WAZUH_VERSION: "4.14.7-1"
+          WAZUH_VERSION: "4.14.8-1"
         run: |
           sudo apt-get update
           sudo apt-get install -y curl gnupg apt-transport-https
@@ -147,7 +147,7 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
 
   publish-pypi:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && !github.event.release.prerelease
     needs: integration
     runs-on: ubuntu-latest
     environment: pypi
