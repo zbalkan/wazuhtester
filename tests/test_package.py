@@ -1,9 +1,9 @@
 """Tests for installed package metadata."""
 from __future__ import annotations
 
-from importlib.metadata import version
 import subprocess
 import sys
+from importlib.metadata import version
 
 import wazuhtester
 

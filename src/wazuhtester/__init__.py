@@ -36,18 +36,18 @@ from wazuhtester.session import LogtestSession
 __version__ = distribution_version("wazuhtester")
 
 __all__ = [
-    "__version__",
-    "send_log",
-    "send_multiple_logs",
-    "LogtestResponse",
-    "LogtestStatus",
-    "LogtestSession",
-    "is_logtest_available",
-    "get_socket_path",
     "LOGTEST_SOCKET",
     "WAZUH_MAX_EVENT_SIZE",
-    "LogtestError",
     "LogtestConnectionError",
-    "LogtestProtocolError",
     "LogtestDaemonError",
+    "LogtestError",
+    "LogtestProtocolError",
+    "LogtestResponse",
+    "LogtestSession",
+    "LogtestStatus",
+    "__version__",
+    "get_socket_path",
+    "is_logtest_available",
+    "send_log",
+    "send_multiple_logs",
 ]

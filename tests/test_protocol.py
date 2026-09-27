@@ -8,8 +8,17 @@ import threading
 
 import pytest
 
-from wazuhtester.errors import LogtestConnectionError, LogtestDaemonError, LogtestProtocolError
-from wazuhtester.protocol import is_logtest_available, send, unwrap_response, wrap_command
+from wazuhtester.errors import (
+    LogtestConnectionError,
+    LogtestDaemonError,
+    LogtestProtocolError,
+)
+from wazuhtester.protocol import (
+    is_logtest_available,
+    send,
+    unwrap_response,
+    wrap_command,
+)
 
 
 def test_wrap_command_envelope() -> None:

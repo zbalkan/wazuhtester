@@ -12,8 +12,11 @@ import struct
 from typing import Any
 
 from wazuhtester.config import get_socket_path
-from wazuhtester.errors import (LogtestConnectionError, LogtestDaemonError,
-                                LogtestProtocolError)
+from wazuhtester.errors import (
+    LogtestConnectionError,
+    LogtestDaemonError,
+    LogtestProtocolError,
+)
 
 _ORIGIN_NAME = "wazuh-logtest"
 _CONNECT_TIMEOUT_SECONDS = 5

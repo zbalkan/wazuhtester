@@ -101,7 +101,7 @@ class LogtestResponse:
             self.status = LogtestStatus.NoDecoder
             return
         if not isinstance(decoder_info, dict):
-            raise ValueError(f"Unexpected decoder field in logtest response: {decoder_info!r}")
+            raise TypeError(f"Unexpected decoder field in logtest response: {decoder_info!r}")
 
         self.decoder = decoder_info.get("name")
         self.decoder_parent = decoder_info.get("parent")

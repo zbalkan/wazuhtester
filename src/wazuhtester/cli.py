@@ -27,10 +27,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _remove_line_delimiter(line: str) -> str:
-    if line.endswith("\n"):
-        line = line[:-1]
-    if line.endswith("\r"):
-        line = line[:-1]
+    line = line.removesuffix("\n")
+    line = line.removesuffix("\r")
     return line
 
 

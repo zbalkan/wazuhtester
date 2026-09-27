@@ -5,6 +5,8 @@ import logging
 from types import TracebackType
 from typing import Any
 
+from typing_extensions import Self
+
 from wazuhtester.config import WAZUH_MAX_EVENT_SIZE
 from wazuhtester.protocol import send, unwrap_response, wrap_command
 
@@ -105,10 +107,10 @@ class LogtestSession:
             reply: dict[str, Any] = unwrap_response(recv_packet)
             codemsg = int(reply.get("codemsg", -1))
             return codemsg >= 0
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
-    def __enter__(self) -> LogtestSession:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(
