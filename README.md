@@ -11,7 +11,7 @@ which consumes the package instead of carrying its own protocol client. See
 
 ## Status
 
-Release candidate (`0.1.0rc1`). The package is awaiting live Wazuh corpus qualification before its first PyPI release.
+Release candidate (`0.1.0`). The package is awaiting live Wazuh corpus qualification before its first PyPI release.
 
 ## Installation
 
@@ -34,7 +34,7 @@ A local checkout can be installed with:
 pipx install --editable .
 ```
 
-The package requires Python 3.10+, Linux, and a reachable `wazuh-logtest` Unix
+The package requires Python 3.9+, Linux, and a reachable `wazuh-logtest` Unix
 socket from a running Wazuh manager. It does not install or run Wazuh itself.
 Importing `wazuhtester` on a non-Linux platform fails immediately with an
 explicit unsupported-platform error. WSL is supported because Python reports the

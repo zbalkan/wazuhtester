@@ -24,7 +24,7 @@ It does not own Wazuh installation, rule/decoder content, regression-corpus dist
 | --- | --- | --- | --- |
 | M0 | done | Library extraction | Public API and fake-socket tests complete |
 | M1 | done | CLI + pytest integration | Console/module entry points and plugin complete |
-| M2 | `0.1.0rc1` | Real Wazuh qualification | Full `wazuh-rule-tests` corpus passes against pinned Wazuh |
+| M2 | `0.1.0` | Real Wazuh qualification | Full `wazuh-rule-tests` corpus passes against pinned Wazuh |
 | M3 | `0.1.0` | First PyPI release | TestPyPI wheel validated; release workflow green |
 | M4 | `0.1.x` | Compatibility fixes | Only backward-compatible protocol/packaging corrections |
 | M5 | `0.2.0` | Consumer-driven expansion | New functionality justified by real consumers |
@@ -49,7 +49,7 @@ The corpus is a consumer, not part of this repository.
 Release sequence:
 
 ```text
-0.1.0rc1 -> TestPyPI
+0.1.0 -> TestPyPI
 0.1.0    -> PyPI
 ```
 
@@ -86,6 +86,6 @@ Ruleset XML introspection, corpus generation, archive coverage analysis, and Waz
 
 | Axis | Support |
 | --- | --- |
-| Python | 3.10–3.13 currently validated |
+| Python | 3.9–3.13 currently validated |
 | Wazuh | Wazuh 4.x; release qualification currently pins 4.14.8 |
 | OS | Linux only; WSL is supported as Linux |
