@@ -2,10 +2,14 @@
 from __future__ import annotations
 
 import logging
+import sys
 from types import TracebackType
 from typing import Any
 
-from typing_extensions import Self
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from wazuhtester.config import WAZUH_MAX_EVENT_SIZE
 from wazuhtester.protocol import send, unwrap_response, wrap_command
