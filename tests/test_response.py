@@ -160,7 +160,7 @@ def test_string_none_decoder_is_no_decoder() -> None:
 def test_unexpected_decoder_shape_is_rejected() -> None:
     try:
         LogtestResponse({"data": {"output": {"decoder": "sshd"}}})
-    except ValueError as exc:
+    except TypeError as exc:
         assert "Unexpected decoder field" in str(exc)
     else:
         raise AssertionError("Expected ValueError for unsupported decoder shape")
