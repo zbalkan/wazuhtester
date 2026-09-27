@@ -110,6 +110,7 @@ jobs:
             sudo tee /etc/apt/sources.list.d/wazuh.list >/dev/null
           sudo apt-get update
           sudo apt-get install -y "wazuh-manager=$WAZUH_VERSION"
+          sudo usermod -aG wazuh "$(whoami)"
           sudo systemctl enable --now wazuh-manager
 
       - name: Wait for wazuh-logtest
@@ -133,8 +134,7 @@ jobs:
       - name: Run external regression corpus
         run: |
           python_path=$(command -v python)
-          sudo -u "$(whoami)" -g wazuh \
-            "$python_path" -m pytest rule-tests/tests -v --wazuh-require-logtest
+          sg wazuh -c "$python_path -m pytest rule-tests/tests -v --wazuh-require-logtest"
 
   publish-testpypi:
     if: github.event_name == 'workflow_dispatch' && inputs.publish-testpypi
