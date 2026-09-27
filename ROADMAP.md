@@ -86,6 +86,6 @@ Ruleset XML introspection, corpus generation, archive coverage analysis, and Waz
 
 | Axis | Support |
 | --- | --- |
-| Python | 3.9–3.13 currently validated |
+| Python | 3.9–3.14 currently validated |
 | Wazuh | Wazuh 4.x; release qualification currently pins 4.14.8 |
 | OS | Linux only; WSL is supported as Linux |
