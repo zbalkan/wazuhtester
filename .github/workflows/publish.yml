@@ -134,7 +134,8 @@ jobs:
       - name: Run external regression corpus
         run: |
           python_path=$(command -v python)
-          sg wazuh -c "$python_path -m pytest rule-tests/tests -v --wazuh-require-logtest"
+          sudo -u "$(whoami)" -g wazuh \
+            "$python_path" -m pytest rule-tests/tests -v --wazuh-require-logtest
 
   publish-testpypi:
     if: github.event_name == 'workflow_dispatch' && inputs.publish-testpypi
