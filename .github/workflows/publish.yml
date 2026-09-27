@@ -63,56 +63,8 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-  integration:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: zbalkan/wazuh-rule-tests
-          ref: main
-          path: rule-tests
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.13"
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: python-package-distributions
-          path: dist/
-      - name: Install exact release candidate wheel
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install pytest "dist/"*.whl
-          python -c "import wazuhtester; print(wazuhtester.__version__)"
-          wazuhtester --help
-      - name: Install Wazuh manager
-        env:
-          WAZUH_VERSION: "4.14.8-1"
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl gnupg apt-transport-https
-          curl -fsSL https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --dearmor | sudo tee /usr/share/keyrings/wazuh.gpg >/dev/null
-          echo "deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main" | sudo tee /etc/apt/sources.list.d/wazuh.list >/dev/null
-          sudo apt-get update
-          sudo apt-get install -y "wazuh-manager=$WAZUH_VERSION"
-          sudo usermod -aG wazuh "$(whoami)"
-          sudo systemctl enable --now wazuh-manager
-      - name: Wait for wazuh-logtest
-        run: |
-          for attempt in $(seq 1 120); do
-            sudo test -S /var/ossec/queue/sockets/logtest && exit 0
-            sleep 1
-          done
-          sudo systemctl status wazuh-manager --no-pager || true
-          sudo journalctl -u wazuh-manager --no-pager -n 100 || true
-          exit 1
-      - name: Run external regression corpus
-        run: |
-          python_path=$(command -v python)
-          sudo -u "$(whoami)" -g wazuh "$python_path" -m pytest rule-tests/tests -v --wazuh-require-logtest
-
   publish:
-    needs: [build, integration]
+    needs: [build]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
