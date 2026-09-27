@@ -28,7 +28,9 @@ classifiers = [
     "Topic :: Software Development :: Testing",
     "Topic :: Utilities",
 ]
-dependencies = []
+dependencies = [
+    "typing-extensions>=4.0; python_version < '3.11'",
+]
 
 [project.optional-dependencies]
 test = ["pytest>=8.0"]
