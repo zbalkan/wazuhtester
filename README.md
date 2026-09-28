@@ -4,10 +4,6 @@
 
 It was extracted from [`wazuh-devenv`](https://github.com/zbalkan/wazuh-devenv), which consumes the package instead of carrying its own protocol client. See [`ROADMAP.md`](ROADMAP.md) for the release and migration sequence.
 
-## Status
-
-`0.1.0` is released on PyPI. Live qualification against the versioned `wazuh-rule-tests` corpus is still pending.
-
 ## Installation
 
 Install the package into a Python environment for library use:
