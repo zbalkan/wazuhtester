@@ -1,4 +1,5 @@
 """Tests for framing, the command envelope, and daemon availability."""
+
 from __future__ import annotations
 
 import json
@@ -63,7 +64,9 @@ def test_is_logtest_available_true(fake_socket_path: str) -> None:
 
 def test_send_round_trip(fake_logtest_server, fake_socket_path: str) -> None:
     fake_logtest_server(lambda req: {"echo": req})
-    reply = send(wrap_command("log_processing", {"event": "x"}), socket_path=fake_socket_path)
+    reply = send(
+        wrap_command("log_processing", {"event": "x"}), socket_path=fake_socket_path
+    )
     assert json.loads(reply)["echo"]["command"] == "log_processing"
 
 

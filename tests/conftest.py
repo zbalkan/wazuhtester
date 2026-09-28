@@ -4,6 +4,7 @@ Replays the same length-prefixed framing wazuh-logtest uses, so the
 protocol, session and response layers can be exercised end to end
 without a real Wazuh install.
 """
+
 from __future__ import annotations
 
 import json
@@ -88,7 +89,9 @@ def fake_logtest_server(tmp_path, monkeypatch):
     daemon's reply to the next `wrap_command`-shaped request it receives.
     """
     socket_path = str(tmp_path / "logtest.sock")
-    handler_box: dict[str, Callable[[dict], dict]] = {"fn": lambda req: {"error": 0, "data": {}}}
+    handler_box: dict[str, Callable[[dict], dict]] = {
+        "fn": lambda req: {"error": 0, "data": {}}
+    }
 
     def handler(request: dict) -> dict:
         return handler_box["fn"](request)

@@ -1,4 +1,5 @@
 """Tests for LogtestSession against the fake daemon."""
+
 from __future__ import annotations
 
 import pytest
@@ -14,7 +15,9 @@ def test_process_log_tracks_token(fake_logtest_server, fake_socket_path: str) ->
     assert reply["data"]["token"] == "tok-123"
 
 
-def test_process_log_reuses_tracked_token(fake_logtest_server, fake_socket_path: str) -> None:
+def test_process_log_reuses_tracked_token(
+    fake_logtest_server, fake_socket_path: str
+) -> None:
     calls: list[dict] = []
 
     def handler(req: dict) -> dict:
@@ -63,13 +66,17 @@ def test_process_log_rejects_oversized_log(fake_socket_path: str) -> None:
         session.process_log("x" * (WAZUH_MAX_EVENT_SIZE + 1))
 
 
-def test_remove_session_reports_success(fake_logtest_server, fake_socket_path: str) -> None:
+def test_remove_session_reports_success(
+    fake_logtest_server, fake_socket_path: str
+) -> None:
     fake_logtest_server(lambda req: {"codemsg": 0})
     session = LogtestSession(socket_path=fake_socket_path)
     assert session.remove_session("tok-123") is True
 
 
-def test_remove_session_reports_failure_without_raising(fake_logtest_server, fake_socket_path: str) -> None:
+def test_remove_session_reports_failure_without_raising(
+    fake_logtest_server, fake_socket_path: str
+) -> None:
     fake_logtest_server(lambda req: {"codemsg": -1})
     session = LogtestSession(socket_path=fake_socket_path)
     assert session.remove_session("tok-123") is False
@@ -80,7 +87,9 @@ def test_remove_last_session_noop_when_no_token(fake_socket_path: str) -> None:
     session.remove_last_session()
 
 
-def test_context_manager_removes_last_session(fake_logtest_server, fake_socket_path: str) -> None:
+def test_context_manager_removes_last_session(
+    fake_logtest_server, fake_socket_path: str
+) -> None:
     calls: list[dict] = []
 
     def handler(req: dict) -> dict:
@@ -121,4 +130,7 @@ def test_remove_last_session_retains_token_until_removal_succeeds(
     assert session.remove_last_session() is True
 
     remove_calls = [call for call in calls if call["command"] == "remove_session"]
-    assert [call["parameters"]["token"] for call in remove_calls] == ["tok-retry", "tok-retry"]
+    assert [call["parameters"]["token"] for call in remove_calls] == [
+        "tok-retry",
+        "tok-retry",
+    ]

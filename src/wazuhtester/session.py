@@ -1,4 +1,5 @@
 """Session management for the Wazuh logtest daemon."""
+
 from __future__ import annotations
 
 import logging
@@ -33,7 +34,10 @@ class LogtestSession:
         log_format: str = "syslog",
         socket_path: str | None = None,
     ) -> None:
-        self._fixed_fields: dict[str, str] = {"location": location, "log_format": log_format}
+        self._fixed_fields: dict[str, str] = {
+            "location": location,
+            "log_format": log_format,
+        }
         self._socket_path = socket_path
         self._last_token = ""
 
@@ -62,7 +66,9 @@ class LogtestSession:
             ValueError: `log` exceeds `WAZUH_MAX_EVENT_SIZE` bytes.
         """
         if len(log.encode("utf-8")) > WAZUH_MAX_EVENT_SIZE:
-            raise ValueError(f"Log size exceeds the maximum limit of {WAZUH_MAX_EVENT_SIZE} bytes.")
+            raise ValueError(
+                f"Log size exceeds the maximum limit of {WAZUH_MAX_EVENT_SIZE} bytes."
+            )
 
         data: dict[str, Any] = self._fixed_fields.copy()
         active_token = token if token is not None else self._last_token

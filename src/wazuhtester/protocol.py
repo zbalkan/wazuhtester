@@ -4,6 +4,7 @@ Handles the length-prefixed framing (a 4-byte little-endian size header
 followed by the payload) and the JSON command envelope wazuh-logtest
 expects, independent of any particular command.
 """
+
 from __future__ import annotations
 
 import json
@@ -77,7 +78,9 @@ def unwrap_response(msg: bytes) -> dict[str, Any]:
     if not isinstance(json_msg, dict):
         raise LogtestProtocolError("Wazuh daemon response must be a JSON object.")
     if json_msg.get("error"):
-        raise LogtestDaemonError(json_msg.get("error"), json_msg.get("message", "Unknown error"))
+        raise LogtestDaemonError(
+            json_msg.get("error"), json_msg.get("message", "Unknown error")
+        )
     return json_msg
 
 
@@ -106,7 +109,9 @@ def send(msg: str, socket_path: str | None = None) -> bytes:
 
             size_data = sock.recv(4, socket.MSG_WAITALL)
             if not size_data or len(size_data) < 4:
-                raise LogtestConnectionError("No size header received from Wazuh socket.")
+                raise LogtestConnectionError(
+                    "No size header received from Wazuh socket."
+                )
             size = struct.unpack("<I", size_data)[0]
 
             recv_msg = b""
@@ -119,4 +124,6 @@ def send(msg: str, socket_path: str | None = None) -> bytes:
                 recv_msg += chunk
             return recv_msg
     except OSError as e:
-        raise LogtestConnectionError(f"Failed to communicate with Wazuh socket: {e}") from e
+        raise LogtestConnectionError(
+            f"Failed to communicate with Wazuh socket: {e}"
+        ) from e

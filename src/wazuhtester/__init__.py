@@ -9,6 +9,7 @@ installed with `pip` independently of its regression-test corpus.
     response = send_log("Oct 10 10:00:00 host sshd[123]: Failed password ...")
     assert response.status == LogtestStatus.RuleMatch
 """
+
 from __future__ import annotations
 
 import sys

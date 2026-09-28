@@ -1,4 +1,5 @@
 """Tests for LogtestResponse parsing and serialization."""
+
 from __future__ import annotations
 
 import json
@@ -27,7 +28,9 @@ def test_no_decoder_status() -> None:
 
 
 def test_no_rule_status() -> None:
-    response = LogtestResponse({"data": {"output": {"decoder": {"name": "json"}, "data": {}}}})
+    response = LogtestResponse(
+        {"data": {"output": {"decoder": {"name": "json"}, "data": {}}}}
+    )
     assert response.status == LogtestStatus.NoRule
     assert response.decoder == "json"
     assert response.rule_id is None
@@ -47,7 +50,10 @@ def test_rule_match_status_populates_rule_fields() -> None:
                     "rule": {
                         "id": "5710",
                         "level": 5,
-                        "description": ["Attempt", "to login using a non-existent user"],
+                        "description": [
+                            "Attempt",
+                            "to login using a non-existent user",
+                        ],
                         "groups": ["authentication_failed", "custom"],
                         "mitre": {"id": ["T1110"]},
                     },

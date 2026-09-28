@@ -11,6 +11,7 @@ option) turns on the old wazuh-devenv `tester.py` behaviour of treating a
 missing daemon as fatal; otherwise, only tests marked
 `@pytest.mark.wazuh_logtest` are skipped when the daemon is unavailable.
 """
+
 from __future__ import annotations
 
 import os
@@ -70,7 +71,10 @@ def pytest_configure(config: Config) -> None:
 
 
 def _require_logtest(config: Config) -> bool:
-    return bool(config.getoption("--wazuh-require-logtest") or config.getini("wazuh_require_logtest"))
+    return bool(
+        config.getoption("--wazuh-require-logtest")
+        or config.getini("wazuh_require_logtest")
+    )
 
 
 def pytest_collection_modifyitems(config: Config, items: list[pytest.Item]) -> None:

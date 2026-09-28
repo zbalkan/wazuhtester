@@ -4,6 +4,7 @@ Every exception subclasses a matching builtin (`ConnectionError`,
 `ValueError`) so code written against the original `internal.logtest`
 module's bare-builtin exceptions keeps working unchanged.
 """
+
 from __future__ import annotations
 
 from typing import Any

@@ -1,4 +1,5 @@
 """Command-line interface for the Wazuh logtest client."""
+
 from __future__ import annotations
 
 import argparse
@@ -18,11 +19,30 @@ def _build_parser() -> argparse.ArgumentParser:
         prog="wazuhtester",
         description="Send log records from stdin to the Wazuh logtest daemon.",
     )
-    parser.add_argument("-l", "--location", default="stdin", help="Wazuh event location (default: stdin)")
-    parser.add_argument("-f", "--log-format", default="syslog", help="Wazuh log format (default: syslog)")
-    parser.add_argument("-s", "--socket", dest="socket_path", help="Path to the wazuh-logtest Unix socket")
-    parser.add_argument("--json", action="store_true", help="Emit one JSON object per input record")
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "-l",
+        "--location",
+        default="stdin",
+        help="Wazuh event location (default: stdin)",
+    )
+    parser.add_argument(
+        "-f",
+        "--log-format",
+        default="syslog",
+        help="Wazuh log format (default: syslog)",
+    )
+    parser.add_argument(
+        "-s",
+        "--socket",
+        dest="socket_path",
+        help="Path to the wazuh-logtest Unix socket",
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="Emit one JSON object per input record"
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__}"
+    )
     return parser
 
 

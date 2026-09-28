@@ -1,4 +1,5 @@
 """Tests for the high-level send_log / send_multiple_logs API."""
+
 from __future__ import annotations
 
 import logging
@@ -59,7 +60,9 @@ def test_send_log_with_explicit_token_leaves_session_owned_by_caller(
     assert calls[0]["parameters"]["token"] == "tok-external"
 
 
-def test_send_multiple_logs_reuses_token_and_removes_session(fake_logtest_server, fake_socket_path: str) -> None:
+def test_send_multiple_logs_reuses_token_and_removes_session(
+    fake_logtest_server, fake_socket_path: str
+) -> None:
     calls: list[dict] = []
 
     def handler(req: dict) -> dict:
@@ -69,7 +72,9 @@ def test_send_multiple_logs_reuses_token_and_removes_session(fake_logtest_server
         return _rule_match_reply("5712")
 
     fake_logtest_server(handler)
-    responses = send_multiple_logs(["log1", "log2", "log3"], socket_path=fake_socket_path)
+    responses = send_multiple_logs(
+        ["log1", "log2", "log3"], socket_path=fake_socket_path
+    )
 
     assert len(responses) == 3
     assert all(r.status == LogtestStatus.RuleMatch for r in responses)
@@ -84,7 +89,9 @@ def test_send_multiple_logs_reuses_token_and_removes_session(fake_logtest_server
     assert remove_calls[0]["parameters"]["token"] == "tok-1"
 
 
-def test_send_multiple_logs_removes_session_even_on_error(fake_logtest_server, fake_socket_path: str) -> None:
+def test_send_multiple_logs_removes_session_even_on_error(
+    fake_logtest_server, fake_socket_path: str
+) -> None:
     calls: list[dict] = []
     responses_left = [_rule_match_reply("1"), {"error": 6, "message": "boom"}]
 

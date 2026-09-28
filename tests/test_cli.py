@@ -1,4 +1,5 @@
 """Tests for the wazuhtester command-line interface."""
+
 from __future__ import annotations
 
 import io
@@ -29,7 +30,9 @@ def _rule_match_reply(token: str = "tok-1") -> dict:
     }
 
 
-def test_cli_human_output(fake_logtest_server, fake_socket_path: str, monkeypatch, capsys) -> None:
+def test_cli_human_output(
+    fake_logtest_server, fake_socket_path: str, monkeypatch, capsys
+) -> None:
     def handler(req: dict) -> dict:
         if req["command"] == "remove_session":
             return {"codemsg": 0}
@@ -94,16 +97,19 @@ def test_cli_forwards_location_and_log_format(
     fake_logtest_server(handler)
     monkeypatch.setattr(sys, "stdin", io.StringIO("event\n"))
 
-    assert main(
-        [
-            "--socket",
-            fake_socket_path,
-            "--location",
-            "custom-location",
-            "--log-format",
-            "json",
-        ]
-    ) == 0
+    assert (
+        main(
+            [
+                "--socket",
+                fake_socket_path,
+                "--location",
+                "custom-location",
+                "--log-format",
+                "json",
+            ]
+        )
+        == 0
+    )
 
     parameters = calls[0]["parameters"]
     assert parameters["location"] == "custom-location"

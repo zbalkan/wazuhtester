@@ -1,4 +1,5 @@
 """The structured response returned by the Wazuh logtest daemon."""
+
 from __future__ import annotations
 
 from collections.abc import MutableMapping
@@ -101,7 +102,9 @@ class LogtestResponse:
             self.status = LogtestStatus.NoDecoder
             return
         if not isinstance(decoder_info, dict):
-            raise TypeError(f"Unexpected decoder field in logtest response: {decoder_info!r}")
+            raise TypeError(
+                f"Unexpected decoder field in logtest response: {decoder_info!r}"
+            )
 
         self.decoder = decoder_info.get("name")
         self.decoder_parent = decoder_info.get("parent")
@@ -116,7 +119,9 @@ class LogtestResponse:
         self.rule_level = rule_info.get("level")
 
         description = rule_info.get("description")
-        self.rule_description = ". ".join(description) if isinstance(description, list) else description
+        self.rule_description = (
+            ". ".join(description) if isinstance(description, list) else description
+        )
 
         groups = rule_info.get("groups")
         if groups:
@@ -139,13 +144,19 @@ class LogtestResponse:
             new_key = f"{parent_key}{separator}{key}" if parent_key else key
             if isinstance(value, MutableMapping):
                 if value:
-                    items.extend(LogtestResponse._flatten(value, new_key, separator).items())
+                    items.extend(
+                        LogtestResponse._flatten(value, new_key, separator).items()
+                    )
                 else:
                     items.append((new_key, None))
             elif isinstance(value, list):
                 if value:
                     for index, entry in enumerate(value):
-                        items.extend(LogtestResponse._flatten({str(index): entry}, new_key, separator).items())
+                        items.extend(
+                            LogtestResponse._flatten(
+                                {str(index): entry}, new_key, separator
+                            ).items()
+                        )
                 else:
                     items.append((new_key, None))
             else:

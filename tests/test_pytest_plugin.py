@@ -4,6 +4,7 @@ Uses pytest's `pytester` fixture to run a small inner pytest session
 against a scratch project, so we can assert on collection/skip behaviour
 without affecting this test run's own session.
 """
+
 from __future__ import annotations
 
 
@@ -35,7 +36,9 @@ def test_marked_test_is_skipped_when_daemon_unavailable(pytester, tmp_path) -> N
     result.assert_outcomes(skipped=1)
 
 
-def test_require_logtest_exits_session_when_daemon_unavailable(pytester, tmp_path) -> None:
+def test_require_logtest_exits_session_when_daemon_unavailable(
+    pytester, tmp_path
+) -> None:
     pytester.makepyfile(
         """
         def test_ok():

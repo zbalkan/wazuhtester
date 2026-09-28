@@ -1,4 +1,5 @@
 """High-level functions for sending logs to the Wazuh logtest daemon."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -30,7 +31,9 @@ def send_log(
     Returns:
         The parsed `LogtestResponse`.
     """
-    session = LogtestSession(location=location, log_format=log_format, socket_path=socket_path)
+    session = LogtestSession(
+        location=location, log_format=log_format, socket_path=socket_path
+    )
     try:
         response_dict = session.process_log(log, token=token)
         return LogtestResponse(response_dict)
@@ -63,7 +66,9 @@ def send_multiple_logs(
         The parsed `LogtestResponse` for each log, in order.
     """
     responses: list[LogtestResponse] = []
-    with LogtestSession(location=location, log_format=log_format, socket_path=socket_path) as session:
+    with LogtestSession(
+        location=location, log_format=log_format, socket_path=socket_path
+    ) as session:
         for log in logs:
             response_dict = session.process_log(log, options=options)
             responses.append(LogtestResponse(response_dict))
