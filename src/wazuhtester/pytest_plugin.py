@@ -1,7 +1,7 @@
 """pytest plugin: Wazuh logtest availability checks and fixtures.
 
 Registered on the `pytest11` entry point, so installing `wazuhtester`
-is enough for pytest to pick it up automatically — no `-p` flag needed.
+is enough for pytest to pick it up automatically - no `-p` flag needed.
 
 Deliberately opt-in on the availability check: a project that merely
 depends on wazuhtester (this package's own test suite included) must not

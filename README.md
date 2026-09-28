@@ -192,4 +192,4 @@ The test suite uses a fake `AF_UNIX` server that implements the Wazuh logtest fr
 
 ## License
 
-GNU General Public License version 2 only — see [LICENSE](LICENSE).
+GNU General Public License version 2 only - see [LICENSE](LICENSE).

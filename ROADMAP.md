@@ -30,7 +30,7 @@ It does not own Wazuh installation, rule/decoder content, regression-corpus dist
 | M5 | `0.2.0` | Consumer-driven expansion | New functionality justified by real consumers |
 | M6 | `1.0.0` | API freeze | Public API and deprecation policy stabilized |
 
-## M2 — Real Wazuh qualification
+## M2 - Real Wazuh qualification
 
 The release workflow installs Wazuh 4.14.8 and runs the external `wazuh-rule-tests` corpus using the candidate package.
 
@@ -44,7 +44,7 @@ This gate validates behavior that the fake AF_UNIX server cannot prove:
 
 The corpus is a consumer, not part of this repository.
 
-## M3 — First release
+## M3 - First release
 
 Release sequence:
 
