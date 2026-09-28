@@ -7,7 +7,8 @@ name = "wazuhtester"
 version = "0.1.0"
 description = "A Python library and CLI for the Wazuh logtest daemon."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "GPL-2.0-only"
+license-files = ["LICENSE"]
 authors = [{ name = "Zafer Balkan" }]
 requires-python = ">=3.9"
 classifiers = [
