@@ -2,7 +2,7 @@
 
 `wazuhtester` is a Python library and command-line tool for interacting with the [Wazuh](https://wazuh.com/) `wazuh-logtest` daemon. It handles the Unix-socket wire protocol, daemon sessions, and response parsing so rule and decoder tests do not need to reimplement the framing and JSON envelope.
 
-It was extracted from [`wazuh-devenv`](https://github.com/zbalkan/wazuh-devenv), which consumes the package instead of carrying its own protocol client. See [`ROADMAP.md`](ROADMAP.md) for the release and migration sequence.
+It was extracted from [`wazuhdevenv`](https://github.com/zbalkan/wazuhdevenv), which consumes the package instead of carrying its own protocol client. See [`ROADMAP.md`](ROADMAP.md) for the release and migration sequence.
 
 ## Installation
 
@@ -12,7 +12,7 @@ Install the package into a Python environment for library use:
 python -m pip install wazuhtester
 ```
 
-For command-line-only use, `pipx` is the preferred installation model once the package is published:
+For command-line-only use, `pipx` is the preferred installation model:
 
 ```shell
 pipx install wazuhtester
