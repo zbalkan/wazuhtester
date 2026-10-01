@@ -10,11 +10,16 @@ from typing import Any
 class LogtestStatus(Enum):
     """The semantic outcome of a log processed by the Wazuh logtest daemon.
 
+    The status is a single terminal result, not a set of independent decoder
+    and rule flags. Responses are classified in this order: daemon error,
+    missing decoder, missing rule, then rule match. Once a status is selected,
+    later stages are not interpreted.
+
     Members:
-        RuleMatch: A rule matched the log; decoding and rule application succeeded.
+        RuleMatch: A decoder and rule are both present.
         Error: The daemon reported an error while processing the log.
-        NoDecoder: No decoder matched the log format; the log could not be interpreted.
-        NoRule: A decoder matched, but no rule was triggered.
+        NoDecoder: No usable decoder is present. Rule metadata is not interpreted.
+        NoRule: A decoder is present, but no rule is present.
     """
 
     RuleMatch = auto()

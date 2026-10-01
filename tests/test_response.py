@@ -170,3 +170,60 @@ def test_unexpected_decoder_shape_is_rejected() -> None:
         assert "Unexpected decoder field" in str(exc)
     else:
         raise AssertionError("Expected ValueError for unsupported decoder shape")
+
+def test_status_contract_is_terminal_and_uses_documented_precedence() -> None:
+    cases = (
+        (
+            {
+                "error": 1,
+                "data": {
+                    "output": {
+                        "decoder": {"name": "json"},
+                        "rule": {"id": "100001"},
+                    }
+                },
+            },
+            LogtestStatus.Error,
+            None,
+            None,
+        ),
+        (
+            {
+                "data": {
+                    "output": {
+                        "decoder": {},
+                        "rule": {"id": "100001"},
+                    }
+                }
+            },
+            LogtestStatus.NoDecoder,
+            None,
+            None,
+        ),
+        (
+            {"data": {"output": {"decoder": {"name": "json"}}}},
+            LogtestStatus.NoRule,
+            "json",
+            None,
+        ),
+        (
+            {
+                "data": {
+                    "output": {
+                        "decoder": {"name": "json"},
+                        "rule": {"id": "100001"},
+                    }
+                }
+            },
+            LogtestStatus.RuleMatch,
+            "json",
+            "100001",
+        ),
+    )
+
+    for payload, status, decoder, rule_id in cases:
+        response = LogtestResponse(payload)
+        assert response.status is status
+        assert response.decoder == decoder
+        assert response.rule_id == rule_id
+

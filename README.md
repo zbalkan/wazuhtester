@@ -72,6 +72,24 @@ with LogtestSession() as session:
 
 The second request uses the token returned by the first. Exiting the context removes the active daemon session.
 
+## Result status
+
+`LogtestStatus` is a single terminal outcome for one `wazuh-logtest`
+response. It deliberately does not expose decoder state and rule state as
+independent flags.
+
+Classification is evaluated in this order:
+
+1. `Error` — the daemon reported an error.
+2. `NoDecoder` — no usable decoder is present.
+3. `NoRule` — a decoder is present, but no rule is present.
+4. `RuleMatch` — both a decoder and a rule are present.
+
+The precedence is part of the public response contract. Once a terminal status
+is selected, fields belonging to later stages are not interpreted. In
+particular, consumers should only treat rule fields as meaningful for
+`RuleMatch`.
+
 ## CLI
 
 Installing the package exposes the `wazuhtester` console command. The executable name deliberately does not use `wazuh-logtest`, which is the name of Wazuh's native tool.
